@@ -1,17 +1,21 @@
-import React from 'react'
+import React from "react";
 
-function PostItem() {
+function PostItem(props) {
   return (
     <div className="post">
-        <div className="post__content">
-          <strong>1. JS</strong>
-          <div>JS - programming language</div>
-        </div>
-        <div className="post__btns">
-          <button>Delete</button>
+      <div className="post__content">
+        <strong>
+          {props.number} - {props.post.title}
+        </strong>
+        <div>
+          {props.post.title} - {props.post.body}
         </div>
       </div>
-  )
+      <div className="post__btns">
+        <button>Delete</button>
+      </div>
+    </div>
+  );
 }
 
-export default PostItem
+export default PostItem;
