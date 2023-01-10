@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 // Components
 import PostList from "./components/PostList";
 import PostForm from "./components/PostForm";
 import PostFilter from "./components/PostFilter";
 import MyModal from "./components/UI/MyModal/MyModal";
 // Hooks
-import {usePosts} from "./hooks/usePost";
+import { usePosts } from "./hooks/usePost";
 // Css
 import "./styles/App.css";
 import MyButton from "./components/UI/button/MyButton";
@@ -21,6 +22,17 @@ function App() {
     setPosts([...posts, newPost]);
     setModal(false);
   }
+
+  async function fetchPosts() {
+    const response = await axios.get(
+      "https://jsonplaceholder.typicode.com/posts"
+    );
+    setPosts(response.data);
+  }
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
 
   function removePost(post) {
     setPosts(posts.filter((p) => p.id !== post.id));
