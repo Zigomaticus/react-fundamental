@@ -1,18 +1,35 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 // Components
 import PostList from "./components/PostList";
 import PostForm from "./components/PostForm";
 import PostFilter from "./components/PostFilter";
 import MyModal from "./components/UI/MyModal/MyModal";
+import Loader from "./components/UI/Loader/Loader";
+import Pagination from "./components/UI/pagination/Pagination";
 // Hooks
 import { usePosts } from "./hooks/usePost";
+import { useFetching } from "./hooks/useFetching";
+// API
+import PostService from "./API/PostService";
+// Utils
+import { getPageCount, getPagesArray } from "./utils/pages";
 // Css
 import "./styles/App.css";
 import MyButton from "./components/UI/button/MyButton";
 
 function App() {
   const [posts, setPosts] = useState([]);
+
+  const [totalPages, setTotalPages] = useState(0);
+  const [limit, setLimit] = useState(10);
+  const [page, setPage] = useState(1);
+
+  const [fetchPosts, isPostLoading, postError] = useFetching(async () => {
+    const response = await PostService.getAll(limit, page);
+    setPosts(response.data);
+    const totalCount = response.headers["x-total-count"];
+    setTotalPages(getPageCount(totalCount, limit));
+  });
 
   const [filter, setFilter] = useState({ sort: "", query: "" });
   const [modal, setModal] = useState(false);
@@ -23,19 +40,16 @@ function App() {
     setModal(false);
   }
 
-  async function fetchPosts() {
-    const response = await axios.get(
-      "https://jsonplaceholder.typicode.com/posts"
-    );
-    setPosts(response.data);
-  }
-
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [page]);
 
   function removePost(post) {
     setPosts(posts.filter((p) => p.id !== post.id));
+  }
+
+  function changePage(page) {
+    setPage(page);
   }
 
   return (
@@ -48,11 +62,25 @@ function App() {
       </MyModal>
       <hr style={{ margin: "15px 0" }} />
       <PostFilter filter={filter} setFilter={setFilter} />
-      <PostList
-        remove={removePost}
-        posts={sortedAndSearchedPosts}
-        title="List of posts"
-      />
+      {postError && <h1>What`s wrong! `${postError}`</h1>}
+      {isPostLoading ? (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "50px",
+          }}
+        >
+          <Loader />
+        </div>
+      ) : (
+        <PostList
+          remove={removePost}
+          posts={sortedAndSearchedPosts}
+          title="List of posts"
+        />
+      )}
+      <Pagination totalPages={totalPages} page={page} changePage={changePage} />
     </div>
   );
 }
